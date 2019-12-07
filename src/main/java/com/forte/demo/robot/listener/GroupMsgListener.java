@@ -29,7 +29,13 @@ public class GroupMsgListener {
     @Listen(MsgGetTypes.groupMsg)
     public void listen1(GroupMsg msg,  MsgSender sender,CQCodeUtil cqCodeUtil,GroupMemberInfo groupMemberInfo){
         // 获取群成员发布的消息
-        String strMsg = msg.getMsg();
+        String strMsg = msg.getMsg().trim();
+        if (strMsg.contains("at,qq=1730707275")){
+            strMsg = strMsg.substring(strMsg.indexOf("]") + 1).trim();
+            if (!CommandUtil.checkCommand(strMsg)){
+                strMsg = "."+strMsg;
+            }
+        }
         // 获取发言人的QQ号
         String strQQ = msg.getQQ();
         // 获取发言的群
@@ -42,17 +48,32 @@ public class GroupMsgListener {
             // 如果是命令,执行操作
             if(CommandUtil.checkCommand(strMsg)&&SystemParam.botstatus){
 
-                // 帮助指令
-                if (strMsg.contains("help指令")){
+                // 帮助指令明细
+                if (strMsg.contains("help")&&strMsg.contains("指令")){
+
                     String resultMsg = LogicUtil.helpzhiling();
                     sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+
+                    logger.info(card+"查看了指令明细:"+strMsg);
+                    return ;
+                }
+
+                // 帮助指令明细
+                if (strMsg.contains("help")&&strMsg.contains("更新")){
+
+                    String resultMsg = LogicUtil.helpgengxin();
+                    sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+
+                    logger.info(card+"查看了指令明细:"+strMsg);
                     return ;
                 }
 
                 // 帮助指令
-                if (strMsg.contains("help")){
+                if (strMsg.contains("help")&&(!strMsg.contains("更新"))&&(!strMsg.contains("指令"))){
                     String resultMsg = LogicUtil.help();
                     sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+
+                    logger.info(card+"查看了指令明细:"+strMsg);
                     return ;
                 }
 
@@ -70,9 +91,9 @@ public class GroupMsgListener {
                 if (strMsg.contains("ra")||strMsg.contains("rc")){
                     String resultMsg = LogicUtil.ra(strMsg);
                     if (resultMsg.contains("*")){
-                        String[] split = resultMsg.split("\\*");
-                        addNameSendMsg(strGroup, strQQ,split[0],sender);
-                        sender.SENDER.sendGroupMsg(strGroup,split[1]);
+                        //String[] split = resultMsg.split("\\*");
+                        addNameSendMsg(strGroup, strQQ,resultMsg.replace('*','\n'),sender);
+                        //sender.SENDER.sendGroupMsg(strGroup,split[1]);
 
                     }else {
                         addNameSendMsg(strGroup, strQQ,resultMsg,sender);
@@ -114,17 +135,64 @@ public class GroupMsgListener {
                     return ;
                 }
 
+                // 4.普通投掷
+                if (strMsg.contains("rhd")){
+                    String resultMsg = LogicUtil.rhd(strMsg);
+                    String reason = strMsg.substring(strMsg.indexOf('d'));
+                    addNameSendMsg(strGroup,strQQ, "进行了一次暗骰",sender);
+                    if (StringUtils.isNotBlank(reason)){
+                        sender.SENDER.sendPrivateMsg(strQQ,"在群"+strGroup+"中由于"+reason+"骰出了"+resultMsg);
+                    }else{
+                        sender.SENDER.sendPrivateMsg(strQQ,"在群"+strGroup+"中骰出了"+resultMsg);
+                    }
 
+                    return ;
+                }
+
+
+
+
+
+
+                // 8.禁言指令
+                if (strMsg.contains("group")&&strMsg.contains("ban")){
+
+                    sender.SETTER.setGroupWholeBan(strGroup, false);
+                    return ;
+                }
+
+                // 8.退群指令
+                if (strMsg.contains("dismiss")){
+                    //String resultMsg = LogicUtil.dismiss(strMsg);
+                    sender.SETTER.setGroupLeave(strGroup);
+                    return ;
+                }
+
+                // 9.人物作成
+                if (strMsg.contains("coc")){
+                    String coc = LogicUtil.coc(strMsg);
+                    addNameSendMsg(strGroup,strQQ,coc,sender);
+                    return ;
+                }
+
+                // 9.人物作成
+                if (strMsg.contains("dnd")){
+                    String coc = LogicUtil.dnd(strMsg);
+                    addNameSendMsg(strGroup,strQQ,coc,sender);
+                    return ;
+                }
+
+                // 10.向master发送消息
+                if (strMsg.contains("send")){
+                    sender.SENDER.sendPrivateMsg("1571650839", strMsg);
+                    return ;
+                }
 
                 // 4.普通投掷
                 if (strMsg.contains("r")){
                     String resultMsg = LogicUtil.r(strMsg);
                     addNameSendMsg(strGroup,strQQ, resultMsg,sender);
-                }
-
-                // 10.向master发送消息
-                if (strMsg.contains("send")){
-                    sender.SENDER.sendPrivateMsg(strQQ, strMsg);
+                    return ;
                 }
 
             }

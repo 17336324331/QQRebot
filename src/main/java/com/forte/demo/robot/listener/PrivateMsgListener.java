@@ -49,12 +49,20 @@ public class PrivateMsgListener {
             // 对方发送的是指令
             if (CommandUtil.checkCommand(strMsg)&& SystemParam.botstatus){
 
+                // 1.帮助指令明细
+                if (strMsg.contains("help")&&strMsg.contains("help指令")){
+                    String resultMsg = LogicUtil.helpzhiling();
+                    sender.SENDER.sendPrivateMsg(strQQ, resultMsg);
+                    return ;
+                }
+
                 // 1.帮助指令
                 if (strMsg.contains("help")){
                     String resultMsg = LogicUtil.help();
                     sendMsg(strQQ, resultMsg,sender);
                     return ;
                 }
+
 
                 // 2.今日人品
                 if (strMsg.contains("jrrp")){

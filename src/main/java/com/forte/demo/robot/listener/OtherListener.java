@@ -45,7 +45,9 @@ public class OtherListener {
             logger.info("welcome: qq:"+qq+"\tgroup:"+group+"\tcard"+card);
         }
 
-        sender.SENDER.sendGroupMsg(group,cqCodeUtil.getCQCode_At(qq)+" "+resultMsg);
+        if (!"1730707275".equals(qq)){
+            sender.SENDER.sendGroupMsg(group,cqCodeUtil.getCQCode_At(qq)+" "+resultMsg);
+        }
 
     }
 
@@ -77,7 +79,7 @@ public class OtherListener {
 
     }
 
-    // 机器人开关事件
+    // 私聊机器人开关事件
     @Listen(MsgGetTypes.privateMsg)
     public void switchStatus(PrivateMsg msg, MsgSender sender, CQCodeUtil cqCodeUtil){
         String strMsg = msg.getMsg();
@@ -105,13 +107,16 @@ public class OtherListener {
     // 机器人开关事件
     @Listen(MsgGetTypes.groupMsg)
     public void switchStatus(GroupMsg msg, MsgSender sender, CQCodeUtil cqCodeUtil){
-        String strMsg = msg.getMsg();
+        String strMsg = msg.getMsg().trim();
+        if (strMsg.contains("at,qq=1730707275")){
+            strMsg = strMsg.substring(strMsg.indexOf("]") + 1).trim();
+        }
         String qq = msg.getQQ();
         String strGroup = msg.getGroup();
         String adminName = CommandUtil.checkAdmin(qq);
         if (strMsg.contains("bot")&& StringUtils.isNotBlank(adminName)){
 
-            String command = strMsg.substring(strMsg.indexOf('t')+2);
+            String command = strMsg.substring(strMsg.indexOf('t')+1);
             if (command.equals("on")&&!SystemParam.botstatus){
                 SystemParam.botstatus = true;
                 sender.SENDER.sendGroupMsg(strGroup,adminName+",行光前来报到");
@@ -122,10 +127,14 @@ public class OtherListener {
                 sender.SENDER.sendGroupMsg(strGroup,adminName+",行光本来就处于开启状态哦");
             }else if(command.equals("off")){
                 sender.SENDER.sendGroupMsg(strGroup,adminName+",行光本来就处于关闭状态哦");
+            }else{
+                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光于2019/12/07 13:18:17更新 \n请输入 .help 更新 查看行光的更新内容");
             }
         }
 
         boolean botstatus = SystemParam.botstatus;
     }
+
+
 
 }
