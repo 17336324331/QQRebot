@@ -7,6 +7,25 @@
     <groupId>com.chenruiyang</groupId>
     <artifactId>QQRebot</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+
+        <spring.version>4.3.7.RELEASE</spring.version>
+        <mybaitsplus.version>2.0.5</mybaitsplus.version>
+        <mybatis.version>3.4.2</mybatis.version>
+        <mybatis-spring.version>1.3.1</mybatis-spring.version>
+        <mybatis-pagehelper.version>5.0.1</mybatis-pagehelper.version>
+        <mybatis-ehcache.version>1.0.0</mybatis-ehcache.version>
+        <ehcache.version>2.10.0</ehcache.version>
+        <poi-ooxml.version>3.17</poi-ooxml.version>
+
+        <thymeleaf.version>3.0.3.RELEASE</thymeleaf.version>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -18,6 +37,15 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>
@@ -46,6 +74,21 @@
             <version>2.6</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>${mybatis.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.27</version>
+        </dependency>
+
     </dependencies>
+
+
+
 
 </project>

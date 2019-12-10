@@ -1,6 +1,7 @@
 package com.forte.demo.robot.listener;
 
 import com.forte.demo.robot.utils.CommandUtil;
+import com.forte.demo.robot.utils.LogicUtil;
 import com.forte.demo.robot.utils.PropertiesUtil;
 import com.forte.demo.robot.utils.SystemParam;
 import com.forte.qqrobot.anno.Filter;
@@ -74,8 +75,9 @@ public class OtherListener {
             logger.info(e.toString());
             logger.info("welcome: qq:"+qq+"\tgroup:"+group+"\tcard"+card);
         }
-
-        sender.SENDER.sendGroupMsg(group,card+resultMsg);
+        //String nickName = LogicUtil.getName(qq,group,sender);
+        resultMsg = resultMsg.replace("xxx", card);
+        sender.SENDER.sendGroupMsg(group,resultMsg);
 
     }
 
@@ -90,14 +92,16 @@ public class OtherListener {
             String command = strMsg.substring(strMsg.indexOf('t')+2);
             if (command.equals("on")&&!SystemParam.botstatus){
                 SystemParam.botstatus = true;
-                sender.SENDER.sendPrivateMsg(qq,adminName+",行光前来报到");
+                sender.SENDER.sendPrivateMsg(qq,adminName+",,来了来了，嗯？我没有喝酒啦！今天会好好骰的！");
             }else if (command.equals("off")&&SystemParam.botstatus){
                 SystemParam.botstatus = false;
-                sender.SENDER.sendPrivateMsg(qq,adminName+",行光先退下了");
+                sender.SENDER.sendPrivateMsg(qq,adminName+",不需要我了？那我喝酒去了，挥挥");
             }else if(command.equals("on")){
-                sender.SENDER.sendPrivateMsg(qq,adminName+",行光本来就处于开启状态哦");
+                sender.SENDER.sendPrivateMsg(qq,adminName+",行光已经在工作了哦");
             }else if(command.equals("off")){
-                sender.SENDER.sendPrivateMsg(qq,adminName+",行光本来就处于关闭状态哦");
+                sender.SENDER.sendPrivateMsg(qq,adminName+",行光已经在度假了呢");
+            }else{
+                sender.SENDER.sendGroupMsg(qq,adminName+",行光于2019/12/08 14:00:00更新 \n请输入 .help 更新 查看行光的更新内容");
             }
         }
 
@@ -110,6 +114,8 @@ public class OtherListener {
         String strMsg = msg.getMsg().trim();
         if (strMsg.contains("at,qq=1730707275")){
             strMsg = strMsg.substring(strMsg.indexOf("]") + 1).trim();
+        }else{
+           return;
         }
         String qq = msg.getQQ();
         String strGroup = msg.getGroup();
@@ -117,18 +123,18 @@ public class OtherListener {
         if (strMsg.contains("bot")&& StringUtils.isNotBlank(adminName)){
 
             String command = strMsg.substring(strMsg.indexOf('t')+1);
-            if (command.equals("on")&&!SystemParam.botstatus){
+            if (command.contains("on")&&!SystemParam.botstatus){
                 SystemParam.botstatus = true;
-                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光前来报到");
-            }else if (command.equals("off")&&SystemParam.botstatus){
+                sender.SENDER.sendGroupMsg(strGroup,adminName+",来了来了，嗯？我没有喝酒啦！今天会好好骰的！");
+            }else if (command.contains("off")&&SystemParam.botstatus){
                 SystemParam.botstatus = false;
-                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光先退下了");
-            }else if(command.equals("on")){
-                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光本来就处于开启状态哦");
-            }else if(command.equals("off")){
-                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光本来就处于关闭状态哦");
+                sender.SENDER.sendGroupMsg(strGroup,adminName+",不需要我了？那我喝酒去了，挥挥");
+            }else if(command.contains("on")){
+                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光已经在工作了哦");
+            }else if(command.contains("off")){
+                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光已经在度假了呢");
             }else{
-                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光于2019/12/07 13:18:17更新 \n请输入 .help 更新 查看行光的更新内容");
+                sender.SENDER.sendGroupMsg(strGroup,adminName+",行光于2019/12/08 14:00:00更新 \n请输入 .help 更新 查看行光的更新内容");
             }
         }
 

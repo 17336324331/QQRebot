@@ -1,9 +1,18 @@
 package com.forte.demo.robot.utils;
 
+import com.forte.demo.robot.model.RuleModel;
+import com.forte.qqrobot.anno.ByNameFrom;
+import com.forte.qqrobot.beans.messages.get.GetStrangerInfo;
+import com.forte.qqrobot.beans.messages.result.GroupMemberInfo;
+import com.forte.qqrobot.sender.MsgSender;
+import com.forte.qqrobot.sender.senderlist.Sender;
+import com.forte.qqrobot.utils.CQCodeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.util.Length;
 
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -59,8 +68,8 @@ public class LogicUtil {
        // PropertiesUtil props = new PropertiesUtil("param.properties");
         // 获取配置文件中帮助菜单的内容
         //String resultMsg = props.getProperty("helpzhingling");
-        String resultMsg = "1.修复了@不生效的bug\n2.添加了dismiss退群指令\n3.添加了coc/dnd人物作成\n4.添加了群员禁言\n5.完善了bot和help菜单\n6.技能判定两行合并为1行";
-
+        //String resultMsg = "1.修复了@不生效的bug\n2.添加了dismiss退群指令\n3.添加了coc/dnd人物作成\n4.添加了群员禁言\n5.完善了bot和help菜单\n6.技能判定两行合并为1行";
+        String resultMsg = "1.修复不@bot生效的bug\n2.修改了bot对话\n3.jrrp对话直接换行\n4.ra/rc修复空格bug\n5.coc随机数范围重置\n6.st属性功能添加\n7.rules功能添加\n8.随机生成怪物属性\n9.ra/rc添加减法\n10.name随机姓名";
         return resultMsg;
     }
 
@@ -78,15 +87,35 @@ public class LogicUtil {
     public static String ra(String strMsg){
         // 只有长度大于3 才是正常命令  (.ra谈判 1 )
         if (strMsg.trim().length() >3){
+            String strCommand = "";
+            if (strMsg.contains("a")){
+                // 获取 命令和分数  (谈判 1)
+                strCommand = strMsg.substring(strMsg.indexOf('a')+1).trim();
+            }else if (strMsg.contains("c")){
+                // 获取 命令和分数  (谈判 1)
+                strCommand = strMsg.substring(strMsg.indexOf('c')+1).trim();
+            }
             // 获取 命令和分数  (谈判 1)
-            String strCommand = strMsg.substring(strMsg.indexOf('a')+1).trim();
+             strMsg.substring(strMsg.indexOf('a')+1).trim();
             // 如果包含 英文空格就以英文空格断开
-            String[] arrCommand = strCommand.split("\\s+");
-            return "进行"+arrCommand[0]+"检定:"+skillcheck(arrCommand[1]);
+            try {
+                //String[] arrCommand = strCommand.split("\\s+");
+                String reason = "";
+                int number = 0;
+                if (StringUtils.isNotBlank(strCommand)){
+                    reason = trimNumber(strCommand);
+                    number = getNumberfromStr(strCommand);
+                }
+                return "进行"+reason+"检定:"+skillcheck(number+"");
+            }catch (Exception e){
+                e.printStackTrace();
+                return LogicUtil.getErrorMsg();
+            }
+
         }
         // 命令不正确时返回""
         else{
-            return  "";
+            return  LogicUtil.getErrorMsg();
         }
 
     }
@@ -173,11 +202,23 @@ public class LogicUtil {
 
     // 普通投掷
     public static String rhd(String strMsg) {
-
-
             return getRandom(100)+"";
+    }
 
+    // 保存属性
+    public static String st(String strMsg) {
+        try {
+            PropertiesUtil props = new PropertiesUtil("param.properties");
+            // 获取配置文件中帮助菜单的内容
+            String resultMsg = props.getProperty("setRoleCard");
 
+            return resultMsg;
+        }catch (Exception e){
+
+            e.printStackTrace();
+            return getErrorMsg();
+
+        }
 
     }
 
@@ -186,7 +227,12 @@ public class LogicUtil {
     public static String r(String strMsg){
 
         int rIndex = strMsg.indexOf("r");
-        int inta = strMsg.indexOf("+");
+        // increase 加法
+        int increase = strMsg.indexOf("+");
+        //  减法
+        int subduction = strMsg.indexOf("-");
+        int inta = increase==-1?subduction:increase;
+        //int i1 = strMsg.indexOf("-");
         int intb = strMsg.indexOf("*");
         String substring = "";
         if (inta==-1&&intb==-1){
@@ -238,28 +284,38 @@ public class LogicUtil {
                     sum+=o;
                 }
 
-                // 没有乘号mei'yo没有减号
+                // 没有乘号并且没有减号
                 if (inta==-1&&intb==-1){
                     substring = strMsg.substring(rIndex+1);
                     return "骰出了"+substring.toUpperCase()+" : "+strSum.substring(1)+"="+sum;
                 }
-                //有乘号并且有减号
+                //有乘号并且有加减号
                 else if (inta!=-1&&intb!=-1){
-                    // 先加再乘
+                    // 先加减法再乘
                     if (inta<intb){
                         Integer factora = Integer.valueOf(strMsg.substring(inta+1,intb).trim());
                         Integer factorb = Integer.valueOf(strMsg.substring(intb+1).trim());
                         substring = strMsg.substring(rIndex+1,inta);
-                        return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")+"+factora+"*"+factorb+"="+(sum+factorb*factora);
+                        if (increase!=-1){
+                            return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")+"+factora+"*"+factorb+"="+(sum+factorb*factora);
+                        }else{
+                            return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")-"+factora+"*"+factorb+"="+(sum-factorb*factora);
+                        }
+
                     }
-                    // 先乘再加
+                    // 先乘再加减
                     else{
                         // a 是 乘数
                         Integer factora = Integer.valueOf(strMsg.substring(intb+1,inta).trim());
                         // b 是 加数
-                        Integer factorb = Integer.valueOf(strMsg.substring(inta).trim());
+                        Integer factorb = Integer.valueOf(strMsg.substring(inta+1).trim());
                         substring = strMsg.substring(rIndex+1,intb);
-                        return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")*"+factora+"+"+factorb+"="+(sum*factora+factorb);
+                        if (increase!=-1){
+                            return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")*"+factora+"+"+factorb+"="+(sum*factora+factorb);
+                        }else{
+                            return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")*"+factora+"-"+factorb+"="+(sum*factora-factorb);
+                        }
+
                     }
                 }
                 // 有其中一个
@@ -270,11 +326,16 @@ public class LogicUtil {
                         substring = strMsg.substring(rIndex+1,intb);
                         return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")*"+factor+"="+sum*factor;
                     }
-                    // 有加号
+                    // 有加减号
                     else{
                         Integer factor = Integer.valueOf(strMsg.substring(inta+1).trim());
                         substring = strMsg.substring(rIndex+1,inta);
-                        return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")+"+factor+"="+(+sum+factor);
+                        if (increase!=-1){
+                            return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")+"+factor+"="+(+sum+factor);
+                        }else {
+                            return "骰出了"+substring.toUpperCase()+" : ("+strSum.substring(1)+")-"+factor+"="+(+sum-factor);
+                        }
+
                     }
                 }
 
@@ -296,19 +357,11 @@ public class LogicUtil {
         int times = 1 ;
 
         try {
-            String str = strMsg.trim();
-            String str2="";
-            if(StringUtils.isNotBlank(strMsg)){
-                for(int i=0;i<str.length();i++) {
-                    if (str.charAt(i) >= 48 && str.charAt(i) <= 57) {
-                        str2 += str.charAt(i);
-                    }
-                }
-            }
-            times = Integer.valueOf(str2);
+            times = Integer.valueOf(getNumberfromStr(strMsg));
 
         }catch (Exception e){
             logger.info("错误指令:"+strMsg);
+            return LogicUtil.getErrorMsg();
         }
 
         StringBuffer sb = new StringBuffer();
@@ -316,17 +369,17 @@ public class LogicUtil {
         for (int i=0;i<times;i++){
             StringBuffer sbtemp = new StringBuffer();
 
-            int liliang = getRandom(100);
-            int tizhi = getRandom(100);
-            int tixing =getRandom(100);
-            int minjie =getRandom(100);
+            int liliang = 5*getRandom(3,18);
+            int tizhi = 5*getRandom(3,18);
+            int tixing =5*getRandom(8,18);
+            int minjie =5*getRandom(3,18);
 
-            int waimao = getRandom(100);
-            int zhili = getRandom(100);
-            int yizhi =getRandom(100);
-            int jiaoyu =getRandom(100);
+            int waimao = 5*getRandom(3,18);
+            int zhili = 5*getRandom(8,18);
+            int yizhi =5*getRandom(3,18);
+            int jiaoyu =5*getRandom(8,18);
 
-            int xingyun =getRandom(100);
+            int xingyun =5*getRandom(3,18);
 
             int total = liliang+tizhi+tixing+minjie+waimao+zhili+yizhi+jiaoyu;
             int total2 = total+xingyun;
@@ -357,17 +410,7 @@ public class LogicUtil {
         int times = 1 ;
 
         try {
-            String str = strMsg.trim();
-            String str2="";
-            if(StringUtils.isNotBlank(strMsg)){
-                for(int i=0;i<str.length();i++) {
-                    if (str.charAt(i) >= 48 && str.charAt(i) <= 57) {
-                        str2 += str.charAt(i);
-                    }
-                }
-            }
-            times = Integer.valueOf(str2);
-
+            times = Integer.valueOf(getNumberfromStr(strMsg));
         }catch (Exception e){
             logger.info("错误指令:"+strMsg);
         }
@@ -444,6 +487,29 @@ public class LogicUtil {
 
     }
 
+    // 获取指定范围的随机数
+    public static int getRandom(int intBegin,int intEnd){
+        Double douJrrp = Math.random() * (intEnd-intBegin-1)+1;
+        int intJrrp = douJrrp.intValue();
+        intJrrp+=intBegin;
+        return intJrrp;
+
+    }
+
+    // 根据规则 创建实体
+    public static RuleModel createModelByRule(RuleModel model){
+
+        model.setStrCON(getScoreBycalc(model.getStrCON()));
+        model.setStrDEX(getScoreBycalc(model.getStrDEX()));
+        model.setStrINT(getScoreBycalc(model.getStrINT()));
+        model.setStrSTR(getScoreBycalc(model.getStrSTR()));
+        model.setStrSIZ(getScoreBycalc(model.getStrSIZ()));
+        model.setStrPOW(getScoreBycalc(model.getStrPOW()));
+        model.setStrHURT(getScoreBycalc(model.getStrHURT()));
+
+        return  model;
+    }
+
     // 技能鉴定结果 true|false
     public static String skillcheck(String score){
         int skillSocre = Integer.valueOf(score);
@@ -493,13 +559,157 @@ public class LogicUtil {
 
     }
 
+    public boolean  checkManage(){
+
+        return false;
+
+    }
+
+    public static String getErrorMsg(){
+        // 读取配置文件
+        PropertiesUtil props = null;
+        try {
+            props = new PropertiesUtil("param.properties");
+        }catch (Exception e){
+            logger.info(e+"");
+        }
+
+        String errorMsg = props.getProperty("errorMsg");
+
+        return errorMsg;
+
+
+    }
+
+    public static Integer getNumberfromStr(String strMsg){
+            String str = strMsg.trim();
+            String str2="";
+            if(StringUtils.isNotBlank(strMsg)){
+                for(int i=0;i<str.length();i++) {
+                    if (str.charAt(i) >= 48 && str.charAt(i) <= 57) {
+                        str2 += str.charAt(i);
+                    }
+                }
+            }
+            return  Integer.valueOf(str2);
+    }
+
+    // 要确保 str 已经 trim 且不为空
+    public static String trimNumber(String str){
+        String resultMsg = "";
+
+        for(int i=str.length()-1;i>=0;i--) {
+            if (str.charAt(i) >= 48 && str.charAt(i) <= 57) {
+
+            }else{
+                resultMsg = str.substring(0,i+1).trim();
+                break;
+            }
+        }
+
+        return resultMsg;
+
+    }
+
+    public static String  getScoreBycalc(String calc){
+        int length = calc.length();
+        Integer score = 0;
+        if (length == 3){
+            String[] arr = calc.split("D");
+            Integer a = Integer.valueOf(arr[0]);
+            Integer b = Integer.valueOf(arr[1]);
+
+            for (int i = 0; i < a; i++) {
+                score+=getRandom(b);
+            }
+        }else if (length == 6){
+            if (calc.contains("×")){
+                // 得到D的索引
+                int aIndex = calc.indexOf('D');
+                // 得到*的索引
+                int bIndex = calc.indexOf('×');
+                String baseString = calc.substring(0, aIndex + 2);
+                String[] arr = baseString.split("D");
+                // 第一个 数字
+                Integer a = Integer.valueOf(arr[0]);
+                // 第二个 数字
+                Integer b = Integer.valueOf(arr[1]);
+                // 第三个数字
+                Integer c = Integer.valueOf(calc.substring(5, 6));
+                for (int i = 0; i < a; i++) {
+                    score+=getRandom(b);
+                }
+                score = score * c;
+
+            }else if(calc.contains("+")){
+                // 得到 第一个数字
+                int a = Integer.valueOf(calc.substring(0,1));
+                // 得到第二个数字
+                int b = Integer.valueOf(calc.substring(2,3));
+                // 得到第三个数字
+                int c = Integer.valueOf(calc.substring(5,6));
+
+                for (int i = 0; i < a; i++) {
+                    score+=getRandom(b);
+                }
+                score = score  +  c;
+            }
+
+        }
+        // 先加后乘法
+        else if (length == 8 ){
+            // 得到 第一个数字
+            int a = Integer.valueOf(calc.substring(0,1));
+            // 得到第二个数字
+            int b = Integer.valueOf(calc.substring(2,3));
+            // 得到第三个数字
+            int c = Integer.valueOf(calc.substring(4,5));
+            // 得到第四个数字
+            int d = Integer.valueOf(calc.substring(7,8));
+
+            for (int i = 0; i < a; i++) {
+                score+=getRandom(b);
+            }
+
+            score *= c;
+            score += d;
+
+        }else{
+            score = -1;
+
+        }
+        return score + "";
+
+    }
+
+
+    // 获取 QQ昵称/群昵称/管理员昵称
+    public static String getName(String strQQ,String strGroup, MsgSender sender){
+        if(StringUtils.isNotBlank(strQQ)){
+            // 获取发言人对应的管理员名称,没有则为null
+            String adminName = CommandUtil.checkAdmin(strQQ);
+            if(StringUtils.isNotBlank(adminName)){
+                //resultMsg= resultMsg.replace("xxx",adminName);
+               return adminName;
+            }else{
+                GroupMemberInfo memberInfo = sender.GETTER.getGroupMemberInfo(strGroup, strQQ, true);
+
+                String card = memberInfo.getCard()==null?memberInfo.getNickName():memberInfo.getCard();
+                card = card == null ?sender.getPersonInfoByCode(strQQ).getName():card;
+                String name = sender.getPersonInfoByCode(strQQ).getName();
+                return card;
+            }
+        }else{
+            return "";
+        }
+
+
+    }
+
 //    public static void main(String[] args) {
-//        try {
-//            while (true){
-//                System.out.println(getRandom(10));
-//            }
-//        }catch (Exception e){
 //
+//        for (int i = 0; i < 1000; i++) {
+//            getRandom(15,90);
 //        }
 //
 //

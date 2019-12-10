@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.forte.demo.robot.mapper.MsgMapper" >
+    <resultMap id="BaseResultMap" type="msgModel">
+        <result column="STR_GUID" jdbcType="VARCHAR" property="strQQ" />
+        <result column="STR_NAME" jdbcType="VARCHAR" property="senderMsg" />
+        <result column="STR_TEL" jdbcType="VARCHAR" property="msgType" />
+        <result column="DT_CREATETIME" jdbcType="TIMESTAMP" property="sendTime" />
+
+    </resultMap>
+
+    <!-- 通过账号查询Guid -->
+    <!--<insert id="saveMsg" parameterType="msgModel" >-->
+      <!--&lt;!&ndash;insert into coc_Msg () &ndash;&gt;-->
+
+    <!--</insert>-->
+    <insert id="saveMsg" parameterType="msgModel">
+      insert into dialog
+      values ( #{strQQ},
+              #{senderMsg},
+              now(),
+              #{strGroup},
+              0,
+               #{msgType}
+)
+
+    </insert>
+
+</mapper>
