@@ -10,13 +10,7 @@ import java.util.Date;
  * @description 自定义的消息实体
  */
 @Data
-public class MsgModel {
-
-    // 发送人的QQ
-    private String strQQ;
-
-    // 群
-    private String strGroup;
+public class MsgModel extends CommonModel{
 
     // 发送的消息
     private String senderMsg;

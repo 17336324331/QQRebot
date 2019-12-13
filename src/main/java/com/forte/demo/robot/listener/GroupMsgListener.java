@@ -1,11 +1,7 @@
 package com.forte.demo.robot.listener;
 
-import com.forte.demo.robot.mapper.MsgMapper;
-import com.forte.demo.robot.mapper.RuleMapper;
-import com.forte.demo.robot.mapper.STMapper;
-import com.forte.demo.robot.model.MsgModel;
-import com.forte.demo.robot.model.RuleModel;
-import com.forte.demo.robot.model.STModel;
+import com.forte.demo.robot.mapper.*;
+import com.forte.demo.robot.model.*;
 import com.forte.demo.robot.utils.*;
 import com.forte.qqrobot.anno.Ignore;
 import com.forte.qqrobot.anno.Listen;
@@ -14,6 +10,7 @@ import com.forte.qqrobot.beans.messages.result.GroupMemberInfo;
 import com.forte.qqrobot.beans.messages.types.MsgGetTypes;
 import com.forte.qqrobot.sender.MsgSender;
 import com.forte.qqrobot.utils.CQCodeUtil;
+import com.sun.org.apache.xml.internal.security.Init;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.javassist.compiler.ast.Stmnt;
 import org.apache.ibatis.session.SqlSession;
@@ -40,7 +37,9 @@ public class GroupMsgListener {
         String strGroup = msg.getGroup();
         // 获取发言人的群昵称
         GroupMemberInfo memberInfo = sender.GETTER.getGroupMemberInfo(strGroup, strQQ, true);
-        String card = memberInfo.getCard()==null?memberInfo.getNickName():memberInfo.getCard();
+        String strCard = memberInfo.getCard();
+        String strNickName = memberInfo.getNickName();
+        String card = strCard==null?strNickName:strCard;
 
         SqlSession sqlSession = null ;
         try {
@@ -117,7 +116,16 @@ public class GroupMsgListener {
                 // 随即姓名
 
                 if (strMsg.contains("name")){
-                    String resultMsg = NameUtil.getName();
+                    Integer fori = 0;
+                    int length = strMsg.length();
+                    String resultMsg = "";
+                    if(  strMsg.indexOf('e')+1 < length){
+                        fori = Integer.valueOf(strMsg.substring(strMsg.indexOf("e")+1 ).trim());
+                    }
+                    for (int i = 0; i < fori; i++) {
+                        resultMsg += NameUtil.getName();
+                    }
+
                     addNameSendMsg(strGroup, strQQ,"的随机名称:\n"+resultMsg,sender);
 
 //                    /sender.SENDER.sendGroupMsg(strGroup,card+","+resultMsg);
@@ -156,6 +164,78 @@ public class GroupMsgListener {
                     return ;
                 }
 
+                // 先攻骰
+                if (strMsg.contains("ri")){
+
+                    InitMapper mapper = sqlSession.getMapper(InitMapper.class);
+                    mapper.deleteInit(strQQ,strGroup);
+
+                    String resultMsg = LogicUtil.ri(strMsg);
+                    if (resultMsg.contains("=")){
+                        String score = resultMsg.substring(resultMsg.indexOf("=")+1);
+                        InitModel initModel = new InitModel();
+                        initModel.setStrQQ(strQQ);
+                        initModel.setStrGroup(strGroup);
+                        initModel.setIntScore(Integer.valueOf(score));
+
+                        InitMapper initMapper = sqlSession.getMapper(InitMapper.class);
+                        initMapper.saveInit(initModel);
+                        sqlSession.commit();
+                        if (resultMsg.charAt(0) == '*'){
+                            addNameSendMsg(strGroup, strQQ,resultMsg.substring(1),sender);
+                        }else{
+                            sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+                        }
+
+
+
+                    }else {
+                        addNameSendMsg(strGroup, strQQ,resultMsg,sender);
+                        logger.info(card+":"+strMsg);
+                    }
+
+                    return ;
+                }
+
+                // 先攻列表
+                if (strMsg.contains("init")){
+                    InitMapper mapper = sqlSession.getMapper(InitMapper.class);
+                    List<InitModel> inits = mapper.selectInit();
+                    String result = "先攻顺序:\n";
+                    for (int i = 0; i < inits.size(); i++) {
+                        InitModel initModel = inits.get(i);
+                        String tempName = initModel.getStrName();
+                        Integer intScore = initModel.getIntScore();
+                        result+=(i+1+". "+tempName+":"+intScore+"\n");
+                    }
+                    sender.SENDER.sendGroupMsg(strGroup,result);
+
+                }
+
+                if (strMsg.contains("nn")){
+                    NameMapper nameMapper = sqlSession.getMapper(NameMapper.class);
+
+                    String oldName = nameMapper.selectNameByQQGroup(strQQ, strGroup);
+
+                    NameModel nameModel = new NameModel();
+                    nameModel.setStrQQ(strQQ);
+                    nameModel.setStrGroup(strGroup);
+                    nameModel.setStrCard(strCard);
+                    nameModel.setStrNickName(strNickName);
+                    strMsg = strMsg.replaceFirst("n", "*");
+                    String nname= strMsg.substring(strMsg.indexOf('n') + 1).trim();
+                    nameModel.setStrNName(nname);
+                    nameMapper.saveName(nameModel);
+                    sqlSession.commit();
+
+
+
+                    String resultMsg = "已将"+oldName==null?card:oldName+"的名称更改为"+nname;
+                    sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+
+                    return ;
+                }
+
                 // 奖励骰
                 if (strMsg.contains("rb")){
                     String resultMsg = LogicUtil.rb(strMsg);
@@ -182,7 +262,6 @@ public class GroupMsgListener {
                     }else{
                         sender.SENDER.sendPrivateMsg(strQQ,"在群"+strGroup+"中骰出了"+resultMsg);
                     }
-
                     return ;
                 }
 
@@ -347,11 +426,29 @@ public class GroupMsgListener {
                 }
                 if (strMsg.contains("会发表情吗")){
                     addNameSendMsg(strGroup,strQQ, " 你这是在刁难我"+cqCodeUtil.getCQCode_Face("176"),sender);
+                    return;
                 }
 
             }
             // 如果不是命令,日志存储
             else {
+                if (strMsg.contains("晚安")){
+                    //String resultMsg = LogicUtil.r(strMsg);
+                    //cqCodeUtil.getCQCode(CQCodeTypes.emoji,)
+                    addNameSendMsg(strGroup,strQQ, "晚安",sender);
+                    return ;
+                }
+                if (strMsg.contains("早上好")){
+                    //String resultMsg = LogicUtil.r(strMsg);
+                    //cqCodeUtil.getCQCode(CQCodeTypes.emoji,)
+                    //cqCodeUtil.getCQCode_Face("176");
+                    addNameSendMsg(strGroup,strQQ, "早上好",sender);
+                    return ;
+                }
+                if (strMsg.contains("会发表情吗")){
+                    addNameSendMsg(strGroup,strQQ, " 你这是在刁难我"+cqCodeUtil.getCQCode_Face("176"),sender);
+                    return;
+                }
                 logger.info(card+"说:"+strMsg);
             }
         }catch (Exception e){

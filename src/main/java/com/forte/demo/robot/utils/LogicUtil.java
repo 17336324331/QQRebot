@@ -121,6 +121,26 @@ public class LogicUtil {
     }
 
     // 惩罚骰
+    public static String ri(String strMsg){
+        // 只有长度大于3 才是正常命令  (.ra谈判 1 )
+        if (strMsg.trim().length() >=3){
+            String strP = strMsg.substring(strMsg.indexOf('i')+1).trim();
+            int random20 = getRandom(20);
+
+            if (StringUtils.isNotBlank(strP)){
+                return  strP +"的先攻骰点 : D20="+random20;
+            }else{
+                return  "*的先攻骰点 : D20="+random20;
+            }
+        }
+        // 命令不正确时返回""
+        else{
+            return  "";
+        }
+
+    }
+
+    // 惩罚骰
     public static String rp(String strMsg){
         // 只有长度大于3 才是正常命令  (.ra谈判 1 )
         if (strMsg.trim().length() >=3){

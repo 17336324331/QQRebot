@@ -65,6 +65,8 @@ public class MyRobotRunApplication implements HttpApp {
         //从核心的1.3-BETA版本开始，配置类支持链式配置
         configuration
                 //此处为酷Q所在的IP地址，默认为127.0.0.1
+                //.setIp("127.241.105.27")
+                //.setIp("35.241.105.27")
                 .setIp("127.0.0.1")
                 //此处为你java程序执行的时候，程序中所启动的服务器端口
                 //此端口用于接收酷Q插件(HTTP API)所提交的信息
