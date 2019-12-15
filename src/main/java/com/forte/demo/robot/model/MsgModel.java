@@ -13,12 +13,10 @@ import java.util.Date;
 public class MsgModel extends CommonModel{
 
     // 发送的消息
-    private String senderMsg;
+    private String strMsg;
 
     // 1.私聊 2.群聊
-    private String msgType;
+    private Integer intMsgType;
 
-    // 信息发送时间
-    private Date sendTime;
 
 }

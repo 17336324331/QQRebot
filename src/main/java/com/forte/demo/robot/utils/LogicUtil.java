@@ -242,9 +242,16 @@ public class LogicUtil {
 
     }
 
+    public static String r(String strMsg){
+        int rIndex = strMsg.indexOf("r");
+        String substring = strMsg.substring(rIndex+1);
+
+        return "骰出了:"+ CalcUtil.dealData(substring);
+
+    }
 
     // 普通投掷
-    public static String r(String strMsg){
+    public static String rOld(String strMsg){
 
         int rIndex = strMsg.indexOf("r");
         // increase 加法

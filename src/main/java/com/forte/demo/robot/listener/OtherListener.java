@@ -1,10 +1,11 @@
 package com.forte.demo.robot.listener;
 
+import com.forte.demo.robot.mapper.SystemCodeMapper;
+import com.forte.demo.robot.model.InitModel;
 import com.forte.demo.robot.utils.CommandUtil;
-import com.forte.demo.robot.utils.LogicUtil;
 import com.forte.demo.robot.utils.PropertiesUtil;
+import com.forte.demo.robot.utils.SqlSessionFactoryUtil;
 import com.forte.demo.robot.utils.SystemParam;
-import com.forte.qqrobot.anno.Filter;
 import com.forte.qqrobot.anno.Listen;
 import com.forte.qqrobot.beans.messages.msgget.GroupMemberIncrease;
 import com.forte.qqrobot.beans.messages.msgget.GroupMemberReduce;
@@ -15,8 +16,11 @@ import com.forte.qqrobot.beans.messages.types.MsgGetTypes;
 import com.forte.qqrobot.sender.MsgSender;
 import com.forte.qqrobot.utils.CQCodeUtil;
 import org.apache.commons.lang.StringUtils;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * @author 陈瑞扬
@@ -30,20 +34,20 @@ public class OtherListener {
     // 新人入群事件
     @Listen(MsgGetTypes.groupMemberIncrease)
     public void welcome(GroupMemberIncrease msg, MsgSender sender, CQCodeUtil cqCodeUtil){
+        SqlSession sqlSession = null ;
         String qq = msg.getQQCode();
         String group = msg.getGroupCode();
         String card = sender.GETTER.getGroupMemberInfo(group, qq).getCard();
         String resultMsg = "" ;
         try {
-            // 读取配置文件
-            PropertiesUtil props = new PropertiesUtil("param.properties");
-            // 获取配置文件中帮助菜单的内容
-            resultMsg = props.getProperty("welcome");
-
+            sqlSession = SqlSessionFactoryUtil.openSqlSession();
+            SystemCodeMapper mapper = sqlSession.getMapper(SystemCodeMapper.class);
+            resultMsg = mapper.selectSystemCode("welcome");
         }catch (Exception e){
             e.printStackTrace();
             logger.info(e.toString());
             logger.info("welcome: qq:"+qq+"\tgroup:"+group+"\tcard"+card);
+
         }
 
         if (!"1730707275".equals(qq)){
@@ -108,7 +112,7 @@ public class OtherListener {
         boolean botstatus = SystemParam.botstatus;
     }
 
-    // 机器人开关事件
+    // 群聊机器人开关事件
     @Listen(MsgGetTypes.groupMsg)
     public void switchStatus(GroupMsg msg, MsgSender sender, CQCodeUtil cqCodeUtil){
         String strMsg = msg.getMsg().trim();

@@ -2,10 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.forte.demo.robot.mapper.MsgMapper" >
     <resultMap id="BaseResultMap" type="msgModel">
-        <result column="STR_GUID" jdbcType="VARCHAR" property="strQQ" />
-        <result column="STR_NAME" jdbcType="VARCHAR" property="senderMsg" />
-        <result column="STR_TEL" jdbcType="VARCHAR" property="msgType" />
-        <result column="DT_CREATETIME" jdbcType="TIMESTAMP" property="sendTime" />
+        <result column="STR_QQ" jdbcType="VARCHAR" property="strQQ" />
+        <result column="STR_GROUP" jdbcType="VARCHAR" property="strGroup"/>
+        <result column="STR_MSG" jdbcType="VARCHAR" property="strMsg" />
+        <result column="INT_MSG_TYPE" jdbcType="INTEGER" property="intMsgType" />
+        <result column="IS_DELETED" jdbcType="INTEGER" property="isDeleted" />
+        <result column="DT_CREATETIME" jdbcType="TIMESTAMP" property="dtCreatetime" />
 
     </resultMap>
 
@@ -17,13 +19,17 @@
     <insert id="saveMsg" parameterType="msgModel">
       insert into dialog
       values ( #{strQQ},
-              #{senderMsg},
-              now(),
-              #{strGroup},
-              0,
-               #{msgType}
-)
+               #{strGroup},
+              #{strMsg},
+               #{intMsgType},
+               0,
+              now()
+          )
 
     </insert>
+    <select id="selectRepeat" resultMap="BaseResultMap">
+      select STR_QQ,STR_GROUP,STR_MSG from  dialog where str_group = #{strGroup} order by DT_CREATETIME desc limit #{num}
+
+    </select>
 
 </mapper>

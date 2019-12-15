@@ -10,13 +10,12 @@ import com.forte.qqrobot.beans.messages.result.GroupMemberInfo;
 import com.forte.qqrobot.beans.messages.types.MsgGetTypes;
 import com.forte.qqrobot.sender.MsgSender;
 import com.forte.qqrobot.utils.CQCodeUtil;
-import com.sun.org.apache.xml.internal.security.Init;
 import org.apache.commons.lang.StringUtils;
-import org.apache.ibatis.javassist.compiler.ast.Stmnt;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.List;
 
 /**
@@ -41,22 +40,8 @@ public class GroupMsgListener {
         String strNickName = memberInfo.getNickName();
         String card = strCard==null?strNickName:strCard;
 
-        SqlSession sqlSession = null ;
-        try {
-            sqlSession = SqlSessionFactoryUtil.openSqlSession();
-            MsgMapper msgMapper = sqlSession.getMapper(MsgMapper.class);
-            MsgModel msgModel = new MsgModel();
-            msgModel.setMsgType("2");
-            msgModel.setStrQQ(strQQ);
-            msgModel.setStrGroup(strGroup);
-            msgModel.setSenderMsg(msg.getMsg());
-            msgMapper.saveMsg(msgModel);
-            sqlSession.commit();
-        }catch (Exception e){
-            e.printStackTrace();
-            sqlSession.rollback();
+        SqlSession sqlSession = SqlSessionFactoryUtil.openSqlSession();
 
-        }
 
 
 
@@ -110,6 +95,20 @@ public class GroupMsgListener {
 
 //                    /sender.SENDER.sendGroupMsg(strGroup,card+","+resultMsg);
                     logger.info(card+"查看了今日人品:"+strMsg);
+                    return ;
+                }
+
+                // 欢迎词修改
+                if (strMsg.contains("welcome")&&StringUtils.isNotBlank(CommandUtil.checkAdmin(strQQ))){
+                    SystemCodeMapper systemCodeMapper = sqlSession.getMapper(SystemCodeMapper.class);
+                    SystemCodeModel codeModel = new SystemCodeModel();
+                    codeModel.setStrCode("welcome");
+                    codeModel.setStrValue(strMsg.substring(9).trim());
+                    systemCodeMapper.saveSystemCode(codeModel);
+                    sqlSession.commit();
+
+                    sender.SENDER.sendGroupMsg(strGroup,"行光已经更新本群的入群欢迎词√");
+                    logger.info(card+"更新本群的入群欢迎词√");
                     return ;
                 }
 
@@ -227,8 +226,6 @@ public class GroupMsgListener {
                     nameModel.setStrNName(nname);
                     nameMapper.saveName(nameModel);
                     sqlSession.commit();
-
-
 
                     String resultMsg = "已将"+oldName==null?card:oldName+"的名称更改为"+nname;
                     sender.SENDER.sendGroupMsg(strGroup,resultMsg);
@@ -411,6 +408,28 @@ public class GroupMsgListener {
                     return ;
                 }
 
+                if (strMsg.contains("n")){
+                    NameMapper nameMapper = sqlSession.getMapper(NameMapper.class);
+
+                    String oldName = nameMapper.selectNameByQQGroup(strQQ, strGroup);
+
+                    NameModel nameModel = new NameModel();
+                    nameModel.setStrQQ(strQQ);
+                    nameModel.setStrGroup(strGroup);
+                    nameModel.setStrCard(strCard);
+                    nameModel.setStrNickName(strNickName);
+                    strMsg = strMsg.replaceFirst("n", "*");
+                    String nname= strMsg.substring(strMsg.indexOf('n') + 1).trim();
+                    nameModel.setStrNName(nname);
+                    nameMapper.saveName(nameModel);
+                    sqlSession.commit();
+
+                    String resultMsg = "已将"+oldName==null?card:oldName+"的名称更改为"+nname;
+                    sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+
+                    return ;
+                }
+
                 if (strMsg.contains("晚安")){
                     //String resultMsg = LogicUtil.r(strMsg);
                     //cqCodeUtil.getCQCode(CQCodeTypes.emoji,)
@@ -481,6 +500,71 @@ public class GroupMsgListener {
             resultMsg = card + resultMsg;
         }
         sender.SENDER.sendGroupMsg(strGroup,resultMsg);
+
+    }
+
+
+    @Listen(MsgGetTypes.groupMsg)
+    public void listenRepeat(GroupMsg msg,  MsgSender sender,CQCodeUtil cqCodeUtil,GroupMemberInfo groupMemberInfo) {
+        // 获取发言人的QQ号
+        String strQQ = msg.getQQ();
+        // 获取发言的群
+        String strGroup = msg.getGroup();
+        // 获取消息
+        String strMSg = msg.getMsg().trim();
+        SqlSession sqlSession = null ;
+        MsgMapper msgMapper = null ;
+        try {
+            sqlSession = SqlSessionFactoryUtil.openSqlSession();
+            msgMapper = sqlSession.getMapper(MsgMapper.class);
+            List<MsgModel> msgModels = msgMapper.selectRepeat(strGroup, 2);
+            boolean repeatFlag = true;
+            boolean repeatPersonFlag = true;
+            if (msgModels.size()==2){
+                for (int i = 0; i < msgModels.size(); i++) {
+                    MsgModel currentModel = msgModels.get(i);
+                    if(!strMSg.equals(currentModel.getStrMsg())){
+                        repeatFlag = false;
+                    }
+                }
+                if (repeatFlag){
+                    // 说明重复
+                    for (int i = 1; i < msgModels.size(); i++) {
+                        MsgModel currentModel = msgModels.get(i);
+                        if(!strQQ.equals(currentModel.getStrQQ())){
+                            repeatPersonFlag = false;
+                        }
+                    }
+                    if (!repeatPersonFlag){
+                        // 说明是三个不同的人发布的消息
+                        //SendUtil.sendGroupMsg(sender,strGroup,msg.getMsg());
+                        sender.SENDER.sendGroupMsg(strGroup,msg.getMsg());
+                    }else{
+                        //SendUtil.sendGroupMsg(sender,strGroup,cqCodeUtil.getCQCode_At(strQQ)+"刷屏警告");
+                        sender.SENDER.sendGroupMsg(strGroup,cqCodeUtil.getCQCode_At(strQQ)+"刷屏警告");
+                    }
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            sqlSession.rollback();
+        }
+
+        try {
+            MsgModel msgModel = new MsgModel();
+            msgModel.setIntMsgType(2);
+            msgModel.setStrQQ(strQQ);
+            msgModel.setStrGroup(strGroup);
+            msgModel.setStrMsg(msg.getMsg());
+            msgMapper.saveMsg(msgModel);
+            sqlSession.commit();
+        }catch (Exception e){
+            e.printStackTrace();
+            sqlSession.rollback();
+
+        }
+
+
 
     }
 

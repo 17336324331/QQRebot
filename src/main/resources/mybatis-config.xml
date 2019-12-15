@@ -8,6 +8,7 @@
         <typeAlias alias="stModel" type="com.forte.demo.robot.model.STModel"/>
         <typeAlias alias="initModel" type="com.forte.demo.robot.model.InitModel"/>
         <typeAlias alias="nameModel" type="com.forte.demo.robot.model.NameModel"/>
+        <typeAlias alias="systemCodeModel" type="com.forte.demo.robot.model.SystemCodeModel"/>
 
     </typeAliases>   <!-- 数据库环境 -->
     <environments default="development">
