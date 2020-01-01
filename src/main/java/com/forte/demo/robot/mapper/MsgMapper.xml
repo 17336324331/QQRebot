@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.forte.demo.robot.mapper.MsgMapper" >
+
     <resultMap id="BaseResultMap" type="msgModel">
         <result column="STR_QQ" jdbcType="VARCHAR" property="strQQ" />
-        <result column="STR_GROUP" jdbcType="VARCHAR" property="strGroup"/>
+        <result column="STR_GROUP" jdbcType="VARCHAR" property="strGroup" />
         <result column="STR_MSG" jdbcType="VARCHAR" property="strMsg" />
         <result column="INT_MSG_TYPE" jdbcType="INTEGER" property="intMsgType" />
         <result column="IS_DELETED" jdbcType="INTEGER" property="isDeleted" />
         <result column="DT_CREATETIME" jdbcType="TIMESTAMP" property="dtCreatetime" />
-
     </resultMap>
 
-    <!-- 通过账号查询Guid -->
-    <!--<insert id="saveMsg" parameterType="msgModel" >-->
-      <!--&lt;!&ndash;insert into coc_Msg () &ndash;&gt;-->
-
-    <!--</insert>-->
     <insert id="saveMsg" parameterType="msgModel">
       insert into dialog
       values ( #{strQQ},
@@ -25,10 +20,14 @@
                0,
               now()
           )
-
     </insert>
+
     <select id="selectRepeat" resultMap="BaseResultMap">
-      select STR_QQ,STR_GROUP,STR_MSG from  dialog where str_group = #{strGroup} order by DT_CREATETIME desc limit #{num}
+      select STR_QQ,STR_GROUP,STR_MSG
+      from  dialog
+      where str_group = #{strGroup}
+      order by DT_CREATETIME desc
+      limit #{num}
 
     </select>
 

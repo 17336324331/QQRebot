@@ -5,6 +5,7 @@ import com.forte.demo.robot.model.*;
 import com.forte.demo.robot.utils.*;
 import com.forte.qqrobot.anno.Ignore;
 import com.forte.qqrobot.anno.Listen;
+import com.forte.qqrobot.anno.depend.Depend;
 import com.forte.qqrobot.beans.messages.msgget.GroupMsg;
 import com.forte.qqrobot.beans.messages.result.GroupMemberInfo;
 import com.forte.qqrobot.beans.messages.types.MsgGetTypes;
@@ -15,7 +16,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
+import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -25,10 +26,18 @@ import java.util.List;
  */
 public class GroupMsgListener {
 
-    private static final Logger logger = LoggerFactory.getLogger("OtherListener");
+    private static final Logger logger = LoggerFactory.getLogger(GroupMsgListener.class);
+
+    @Depend
+    SqlSession sqlSession = SqlSessionFactoryUtil.openSqlSession();
+
 
     @Listen(MsgGetTypes.groupMsg)
     public void listen1(GroupMsg msg,  MsgSender sender,CQCodeUtil cqCodeUtil,GroupMemberInfo groupMemberInfo){
+        //SystemCodeMapper systemCodeMapperxxx = sqlSession.getMapper(SystemCodeMapper.class);
+
+        //SqlSession sqlSession = SqlSessionFactoryUtil.openSqlSession();
+
 
         // 获取发言人的QQ号
         String strQQ = msg.getQQ();
@@ -39,11 +48,6 @@ public class GroupMsgListener {
         String strCard = memberInfo.getCard();
         String strNickName = memberInfo.getNickName();
         String card = strCard==null?strNickName:strCard;
-
-        SqlSession sqlSession = SqlSessionFactoryUtil.openSqlSession();
-
-
-
 
 
         // 获取群成员发布的消息
@@ -365,8 +369,6 @@ public class GroupMsgListener {
                 }
 
 
-
-
                 // 8.禁言指令
                 if (strMsg.contains("group")&&strMsg.contains("ban")){
 
@@ -402,13 +404,21 @@ public class GroupMsgListener {
                 }
 
                 // 4.普通投掷
-                if (strMsg.contains("r")){
+                if (strMsg.substring(1).trim().substring(0,1).equals("r")){
                     String resultMsg = LogicUtil.r(strMsg);
                     addNameSendMsg(strGroup,strQQ, resultMsg,sender);
                     return ;
                 }
 
-                if (strMsg.contains("n")){
+                // 4.成长鉴定
+                if (strMsg.substring(1).trim().substring(0,2).equals("en")){
+                    String resultMsg = LogicUtil.en(strMsg);
+                    addNameSendMsg(strGroup,strQQ, resultMsg,sender);
+                    return ;
+                }
+
+                if (strMsg.substring(1).trim().substring(0,1).equals("n")){
+
                     NameMapper nameMapper = sqlSession.getMapper(NameMapper.class);
 
                     String oldName = nameMapper.selectNameByQQGroup(strQQ, strGroup);
@@ -418,13 +428,13 @@ public class GroupMsgListener {
                     nameModel.setStrGroup(strGroup);
                     nameModel.setStrCard(strCard);
                     nameModel.setStrNickName(strNickName);
-                    strMsg = strMsg.replaceFirst("n", "*");
+//                    strMsg = strMsg.replaceFirst("n", "*");
                     String nname= strMsg.substring(strMsg.indexOf('n') + 1).trim();
                     nameModel.setStrNName(nname);
                     nameMapper.saveName(nameModel);
                     sqlSession.commit();
 
-                    String resultMsg = "已将"+oldName==null?card:oldName+"的名称更改为"+nname;
+                    String resultMsg = "已将"+(oldName==null?card:oldName)+"的名称更改为"+nname;
                     sender.SENDER.sendGroupMsg(strGroup,resultMsg);
 
                     return ;
@@ -476,6 +486,7 @@ public class GroupMsgListener {
             logger.info("strMsg:"+strMsg+"\tstrQQ:"+strQQ+"\tstrGroup"+strGroup);
         }
 
+
     }
 
 
@@ -515,6 +526,8 @@ public class GroupMsgListener {
         SqlSession sqlSession = null ;
         MsgMapper msgMapper = null ;
         try {
+
+
             sqlSession = SqlSessionFactoryUtil.openSqlSession();
             msgMapper = sqlSession.getMapper(MsgMapper.class);
             List<MsgModel> msgModels = msgMapper.selectRepeat(strGroup, 2);

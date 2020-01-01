@@ -106,7 +106,7 @@ public class LogicUtil {
                     reason = trimNumber(strCommand);
                     number = getNumberfromStr(strCommand);
                 }
-                return "进行"+reason+"检定:"+skillcheck(number+"");
+                return "进行"+(reason.equals("克苏鲁")?"克苏鲁神话":reason)+"检定:"+skillcheck(number+"");
             }catch (Exception e){
                 e.printStackTrace();
                 return LogicUtil.getErrorMsg();
@@ -247,6 +247,27 @@ public class LogicUtil {
         String substring = strMsg.substring(rIndex+1);
 
         return "骰出了:"+ CalcUtil.dealData(substring);
+
+    }
+
+    // 成长鉴定
+    public static String en(String strMsg){
+        int rIndex = strMsg.indexOf("n");
+        String substring = strMsg.substring(rIndex+1).trim();
+        String shuxing = substring.substring(0, 2);
+        String fenshu = substring.substring(2, substring.length());
+        int intFenshu = Integer.valueOf(fenshu.trim());
+        int random = getRandom(100);
+        String  compareRes = "";
+        if (random < intFenshu){
+            compareRes = "是失败呢 你的" +shuxing+"没有变化";
+        }else{
+            compareRes = "是成功呢 你的" +shuxing+"增加了d10="+getRandom(10);
+        }
+
+        String s = CalcUtil.dealData("1d100");
+
+        return "的"+shuxing+"增强或成长鉴定:1D100="+random+"/"+fenshu+compareRes;
 
     }
 

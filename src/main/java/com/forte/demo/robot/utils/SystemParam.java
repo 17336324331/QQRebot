@@ -17,5 +17,4 @@ public class SystemParam {
 
     public static List oblist = new ArrayList();
 
-
 }

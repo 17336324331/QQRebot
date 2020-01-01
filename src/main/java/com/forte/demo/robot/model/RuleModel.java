@@ -7,7 +7,7 @@ import java.util.Date;
 /**
  * @author 陈瑞扬
  * @date 2019年12月01日 11:28
- * @description 自定义的规则实体
+ * @description 自定义的规则实体,用于召唤怪物
  */
 @Data
 public class RuleModel {

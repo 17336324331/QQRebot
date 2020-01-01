@@ -43,10 +43,10 @@
 
     <update id="deleteInit">
       update      init
-set IS_DELETED = 1
-<where>
-    STR_QQ = #{strQQ} and STR_GROUP = #{strGroup} and is_deleted = 0
-</where>
+        set IS_DELETED = 1
+        <where>
+            STR_QQ = #{strQQ} and STR_GROUP = #{strGroup} and is_deleted = 0
+        </where>
 
     </update>
 

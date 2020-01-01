@@ -15,8 +15,7 @@
       <!--&lt;!&ndash;insert into coc_Msg () &ndash;&gt;-->
 
     <!--</insert>-->
-    <insert id="saveSystemCode" parameterType="systemCodeModel"
-        >
+    <insert id="saveSystemCode" parameterType="systemCodeModel">
       insert into systemcode (int_id,str_code,str_value,is_deleted,dt_createtime)
       values (
               LAST_INSERT_ID(),

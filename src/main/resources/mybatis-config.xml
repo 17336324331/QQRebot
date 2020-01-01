@@ -9,6 +9,7 @@
         <typeAlias alias="initModel" type="com.forte.demo.robot.model.InitModel"/>
         <typeAlias alias="nameModel" type="com.forte.demo.robot.model.NameModel"/>
         <typeAlias alias="systemCodeModel" type="com.forte.demo.robot.model.SystemCodeModel"/>
+        <typeAlias alias="randomNameModel" type="com.forte.demo.robot.model.RandomNameModel"/>
 
     </typeAliases>   <!-- 数据库环境 -->
     <environments default="development">
@@ -16,7 +17,7 @@
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.jdbc.Driver"/>
-                <!--<property name="url" value="jdbc:mysql://localhost:3306/coc?autoReconnect=true&amp;useUnicode=yes&amp;characterEncoding=UTF8&amp;allowMultiQueries=true"/>-->
+                <!--<property name="url" value="jdbc:mysql://35.224.10.148:3306/coc?autoReconnect=true&amp;useUnicode=yes&amp;characterEncoding=UTF8&amp;allowMultiQueries=true"/>-->
                 <property name="url" value="jdbc:mysql://127.0.0.1:3306/coc?characterEncoding=UTF8"/>
                 <property name="username" value="root"/>
                 <property name="password" value="root"/>

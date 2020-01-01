@@ -12,15 +12,26 @@ import org.apache.ibatis.session.SqlSession;
  */
 public class SendUtil {
 
-
-
+    /**
+     * @date 2019/12/23 17:06
+     * @author 陈瑞扬
+     * @description 给指定的群发送消息,不@
+     * @param sender
+     * @param strGroup
+     * @param strMsg
+     * @return
+     */
     public static void sendGroupMsg(MsgSender sender,String strGroup, String strMsg){
         SqlSession sqlSession = SqlSessionFactoryUtil.openSqlSession();
         MsgMapper mapper = sqlSession.getMapper(MsgMapper.class);
         MsgModel msgModel = new MsgModel();
-        ///mapper.saveMsg(strMsg);
+        //mapper.saveMsg(strMsg);
 
         sender.SENDER.sendGroupMsg(strGroup,strMsg);
+
+    }
+
+    public static void beforeSend(String sds){
 
     }
 }

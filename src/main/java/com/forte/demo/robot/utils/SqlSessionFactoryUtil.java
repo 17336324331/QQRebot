@@ -9,6 +9,7 @@ package com.forte.demo.robot.utils;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.forte.qqrobot.anno.depend.Beans;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -17,6 +18,7 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 /**
  * 使用mybatis-config.xml文件，通过SQLSessionFactory-Builder来构建SqlSessionFactory。由于SqlSessionFactory应该采用单例模式，所以这里使用单例模式去构建它
  */
+//@Beans
 public class SqlSessionFactoryUtil {
 
     private final static Class<SqlSessionFactoryUtil> LOCK = SqlSessionFactoryUtil.class;
@@ -47,6 +49,7 @@ public class SqlSessionFactoryUtil {
     }
 
     //openSqlSession方法的作用则是创建SqlSession对象。
+    //@Beans
     public static SqlSession openSqlSession() {
         if (SqlSessionFactory == null) {
             getSqlSessionFactory();

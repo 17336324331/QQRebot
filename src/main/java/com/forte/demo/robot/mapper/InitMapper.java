@@ -1,8 +1,6 @@
 package com.forte.demo.robot.mapper;
 
 import com.forte.demo.robot.model.InitModel;
-import com.forte.demo.robot.model.MsgModel;
-import com.sun.org.apache.xml.internal.security.Init;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

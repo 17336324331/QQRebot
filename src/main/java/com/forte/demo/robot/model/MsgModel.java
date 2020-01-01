@@ -12,10 +12,14 @@ import java.util.Date;
 @Data
 public class MsgModel extends CommonModel{
 
-    // 发送的消息
+    /**
+     *   发送的消息的内容
+     */
     private String strMsg;
 
-    // 1.私聊 2.群聊
+    /**
+     *    发送的 消息的类别 1.私聊 2.群聊
+     */
     private Integer intMsgType;
 
 
